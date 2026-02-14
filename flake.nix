@@ -36,25 +36,15 @@
           lib,
           ...
         }:
-        let
-          sac2c = pkgs.callPackage ./sac2c { };
+        {
+          _module.args.pkgs = import inputs.nixpkgs {
+            localSystem = { inherit system; };
 
-          sac2c-stdlib = pkgs.callPackage ./sac2c-stdlib {
-            sac2c = sac2c;
+            overlays = [ self.overlays.default ];
           };
 
-          wrap-sac2c =
-            prevSac2c: package:
-            pkgs.writeShellScriptBin "sac2c" ''
-              exec ${prevSac2c}/bin/sac2c -L "${package}/lib" -T "${package}/lib" "$@"
-            '';
-
-          sac2c-with-stdlib = wrap-sac2c sac2c sac2c-stdlib;
-        in
-
-        {
           packages = {
-            inherit
+            inherit (pkgs)
               sac2c
               sac2c-stdlib
               sac2c-with-stdlib
@@ -62,7 +52,7 @@
           };
 
           legacyPackages = {
-            inherit
+            inherit (pkgs)
               # not a valid package, so we put it in legacy packages
               wrap-sac2c
               ;
@@ -75,7 +65,7 @@
 
             sac2c = pkgs.mkShell (
               let
-                sac2c-no-git = sac2c.override { mockGit = false; };
+                sac2c-no-git = pkgs.sac2c.override { mockGit = false; };
               in
               {
                 inputsFrom = [ sac2c-no-git ];
@@ -86,7 +76,7 @@
 
             sac2c-stdlib = pkgs.mkShell (
               let
-                sac2c-stdlib-no-git = sac2c-stdlib.override { mockGit = false; };
+                sac2c-stdlib-no-git = pkgs.sac2c-stdlib.override { mockGit = false; };
               in
               {
                 inputsFrom = [ sac2c-stdlib-no-git ];
