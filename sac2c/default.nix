@@ -21,7 +21,7 @@
 }@inputs:
 let
   # git describe --tags --abbrev=4
-  version = "v2.0";
+  version = "v2.0.0-Tintigny";
 
   # Because the sac2c compilation sets the version using git we need to mock it
   # existing. This is also what our patch works around. When making a devshell
@@ -29,7 +29,7 @@ let
   mock-git = writeShellApplication {
     name = "git";
     text = ''
-      echo "v${version}"
+      echo "${version}"
     '';
   };
 
