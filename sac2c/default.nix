@@ -21,7 +21,7 @@
 }@inputs:
 let
   # git describe --tags --abbrev=4
-  version = "v2.0";
+  version = "v2.1.0-PuurGeluk-205-gbed278c6c";
 
   # Because the sac2c compilation sets the version using git we need to mock it
   # existing. This is also what our patch works around. When making a devshell
@@ -38,9 +38,9 @@ let
   src = fetchFromGitLab {
     domain = "gitlab.sac-home.org";
     owner = "sac-group";
-    repo = "sac2c";
-    rev = "4c765f73fca263ba88be1e746c659f318603b93d";
-    hash = "sha256-cKOKF2H9N1/tLXW1I9Pt8+hvXq4hu7b5gYPMXGyzF18=";
+    repo = pname;
+    tag = version;
+    hash = "sha256-PVcw8UouAR2DFiyo3y23k37QmErti7aenwiyUemIptg=";
   };
 
   stdenv = throw "Use effectiveStdenv instead";
@@ -85,4 +85,31 @@ effectiveStdenv.mkDerivation (drv: {
     python3
   ]
   ++ lib.optionals mockGit [ mock-git ];
+
+  preFixup = ''
+    for d in $out/lib/sac2c/${version}/modlibs/{host/*,tree/host/*}; do
+      if [ -d "$d" ]; then
+        for f in "$d"/*; do
+          if [ -f "$f" ] && isELF "$f"; then
+            # add the directory it exists in, since it might depend on other libraries
+            patchelf --add-rpath "$d" "$f"
+
+            # # this is not specified as needed but I think the sac2c compiler manages it?
+            # if [[ "$(basename "$f")" == "libsacprelude_pMod.so" ]]; then
+            #   patchelf --add-needed "libsac_p.so" "$f"
+            # fi
+
+            # add runtime directory
+            rt_d=$(sed 's|/modlibs/|/rt/|g' <<<"$d")
+            patchelf --add-rpath "$rt_d" "$f"
+
+            # remove directories outside the nix store
+            patchelf --shrink-rpath --allowed-rpath-prefixes "$NIX_STORE" "$f"
+
+            chmod +x "$f"
+          fi
+        done
+      fi
+    done
+  '';
 })
