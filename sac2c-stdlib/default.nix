@@ -10,8 +10,6 @@
   writeShellApplication,
   cmake,
   pkg-config,
-  ninja,
-  useNinja ? false,
   mockGit ? true,
   debug ? false,
   buildGeneric ? true,
@@ -93,7 +91,6 @@ effectiveStdenv.mkDerivation (drv: {
     pkg-config
     sac2c
   ]
-  ++ lib.optionals useNinja [ ninja ]
   ++ lib.optionals mockGit [ mock-git ];
 
   preFixup = ''
