@@ -4,9 +4,15 @@
 
     flake-parts.url = "github:hercules-ci/flake-parts";
 
+    flake-compat = {
+      url = "github:NixOS/flake-compat";
+      flake = false;
+    };
+
     git-hooks-nix = {
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
+      inputs.flake-compat.follows = "flake-compat";
     };
   };
 
