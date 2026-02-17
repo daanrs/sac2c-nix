@@ -22,9 +22,14 @@
       flake-parts,
       ...
     }:
+    let
+      flakeModule = ./flake-module.nix;
+    in
+
     flake-parts.lib.mkFlake { inherit inputs; } {
       imports = [
         inputs.git-hooks-nix.flakeModule
+        flakeModule
       ];
 
       systems = [
@@ -49,22 +54,6 @@
             overlays = [ self.overlays.default ];
           };
 
-          packages = {
-            inherit (pkgs)
-              sac2c
-              sac2c-stdlib
-              sac2c-with-stdlib
-              ;
-          };
-
-          legacyPackages = {
-            inherit (pkgs)
-              # not a valid package, so we put it in legacy packages
-              wrap-sac2c
-              ;
-
-          };
-
           # internal devShell for formatting check
           devShells.pre-commit = config.pre-commit.devShell;
 
@@ -73,6 +62,8 @@
 
       flake = {
         overlays.default = import ./overlay.nix;
+
+        flakeModule = flakeModule;
       };
     };
 }
