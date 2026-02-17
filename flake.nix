@@ -65,32 +65,8 @@
 
           };
 
-          devShells = {
-            # internal devShell for formatting check
-            pre-commit = config.pre-commit.devShell;
-
-            sac2c = pkgs.mkShell (
-              let
-                sac2c-no-git = pkgs.sac2c.override { mockGit = false; };
-              in
-              {
-                inputsFrom = [ sac2c-no-git ];
-
-                cmakeFlags = sac2c-no-git.cmakeFlags;
-              }
-            );
-
-            sac2c-stdlib = pkgs.mkShell (
-              let
-                sac2c-stdlib-no-git = pkgs.sac2c-stdlib.override { mockGit = false; };
-              in
-              {
-                inputsFrom = [ sac2c-stdlib-no-git ];
-
-                cmakeFlags = sac2c-stdlib-no-git.cmakeFlags;
-              }
-            );
-          };
+          # internal devShell for formatting check
+          devShells.pre-commit = config.pre-commit.devShell;
 
           pre-commit.settings.hooks.nixfmt.enable = true;
         };

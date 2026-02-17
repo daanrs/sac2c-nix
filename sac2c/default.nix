@@ -10,11 +10,9 @@
   m4,
   gcc,
   cmake,
-  writeShellApplication,
   pkg-config,
   python3,
   buildGeneric ? true,
-  mockGit ? true,
   debug ? false,
   cudaSupport ? config.cudaSupport,
   cudaPackages ? { },
@@ -22,16 +20,6 @@
 let
   # git describe --tags --abbrev=4
   version = "v2.0.0-Tintigny";
-
-  # Because the sac2c compilation sets the version using git we need to mock it
-  # existing. This is also what our patch works around. When making a devshell
-  # make sure to set mockGit as false, otherwise you will be very confused.
-  mock-git = writeShellApplication {
-    name = "git";
-    text = ''
-      echo "${version}"
-    '';
-  };
 
   pname = "sac2c";
 
@@ -50,7 +38,7 @@ let
   inherit (cudaPackages) cudatoolkit;
 in
 effectiveStdenv.mkDerivation (drv: {
-  inherit src;
+  inherit src version;
   name = pname;
 
   buildInputs = [
@@ -61,15 +49,22 @@ effectiveStdenv.mkDerivation (drv: {
   ]
   ++ lib.optionals cudaSupport [ cudatoolkit ];
 
-  # Sac tries to write sac2crc to home directory. Because we do not allow it do
-  # so we will have to manage packages ourselves.
+  postPatch = ''
+    substituteInPlace cmake/sac2c-version-related.cmake \
+      --replace-fail ''\'''${GIT_EXECUTABLE} describe --tags --abbrev=4 --dirty' "echo ${version}" \
+      --replace-fail ''\'''${GIT_EXECUTABLE} diff-index --quiet HEAD' "echo" \
+      --replace-fail '="''${GIT_EXECUTABLE}"' "=echo" \
+      --replace-fail "FIND_PACKAGE (Git)" "" \
+      --replace-fail "GIT_FOUND" 1
+
+    substituteInPlace cmake/check-repo-version.cmake \
+      --replace-fail ''\'''${GIT_COMMAND} describe --tags --abbrev=4 --dirty' "echo ${version}"
+  '';
+
+  # Sac tries to write sac2crc to home directory.
   preConfigure = ''
     export HOME=$TMPDIR
   '';
-
-  patches = [
-    ./unset_sac2c_is_dirty.patch
-  ];
 
   cmakeBuildType = if debug then "DEBUG" else "RELEASE";
 
@@ -83,6 +78,5 @@ effectiveStdenv.mkDerivation (drv: {
     gcc
     pkg-config
     python3
-  ]
-  ++ lib.optionals mockGit [ mock-git ];
+  ];
 })
