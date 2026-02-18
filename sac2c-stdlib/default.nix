@@ -91,6 +91,9 @@ effectiveStdenv.mkDerivation (drv: {
     sac2c
   ];
 
+  # There are no unit test for the stdlib
+  doCheck = false;
+
   preFixup = ''
     for d in $out/lib/{host/*,tree/host/*}; do
       if [ -d "$d" ]; then

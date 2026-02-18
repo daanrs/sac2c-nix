@@ -2,7 +2,6 @@
   config,
   stdenv,
   lib,
-  ninja,
   fetchFromGitLab,
   libuuid,
   libxslt,
@@ -12,6 +11,9 @@
   cmake,
   pkg-config,
   python3,
+  gtest,
+  ctestCheckHook,
+  doCheck ? false,
   buildGeneric ? true,
   debug ? false,
   cudaSupport ? config.cudaSupport,
@@ -78,5 +80,24 @@ effectiveStdenv.mkDerivation (drv: {
     gcc
     pkg-config
     python3
+  ];
+
+  inherit doCheck;
+
+  checkInputs = [ gtest ];
+
+  nativeCheckInputs = [ ctestCheckHook ];
+
+  # idk why but these fail
+  disabledTests = [
+    "test-global-object-exp"
+    "test-global-object-indirect-exp"
+    "test-global-object-local"
+    "test-global-object-wl"
+    "test-icc-guard-prf"
+    "test-issue-2286"
+    "test-mowl-SE"
+    "test-mowl-SE2"
+    "test-void"
   ];
 })

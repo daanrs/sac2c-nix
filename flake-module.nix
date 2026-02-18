@@ -36,7 +36,7 @@ in
           packages.sac2c = mkOption {
             type = types.package;
             description = ''
-              Nixpkgs to use
+              sac2c compiler
             '';
             default = pkgs.sac2c;
           };
@@ -44,7 +44,7 @@ in
           packages.sac2c-stdlib = mkOption {
             type = types.package;
             description = ''
-              Nixpkgs to use
+              sac2c standard library
             '';
             default = pkgs.sac2c-stdlib;
           };
@@ -52,7 +52,7 @@ in
           packages.sac2c-with-stdlib = mkOption {
             type = types.package;
             description = ''
-              Nixpkgs to use
+              sac2c package wrapped with stdlib
             '';
             default = pkgs.sac2c-with-stdlib;
           };
@@ -62,7 +62,7 @@ in
             description = ''
               sac2c to check
             '';
-            default = cfg.packages.sac2c;
+            default = cfg.packages.sac2c.override { doCheck = true; };
           };
 
           checks.sac2c-stdlib = mkOption {
@@ -80,6 +80,7 @@ in
             '';
             default = pkgs.mkShell {
               inputsFrom = [ cfg.packages.sac2c ];
+              packages = [ pkgs.gtest ];
             };
           };
 
@@ -90,6 +91,7 @@ in
             '';
             default = pkgs.mkShell {
               inputsFrom = [ cfg.packages.sac2c-stdlib ];
+              packages = [ pkgs.gtest ];
             };
           };
 
