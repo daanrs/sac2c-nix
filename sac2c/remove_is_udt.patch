@@ -1,0 +1,13 @@
+diff --git a/src/libsacprelude/sacprelude.sac b/src/libsacprelude/sacprelude.sac
+index ca9df6c70..8ca246852 100644
+--- a/src/libsacprelude/sacprelude.sac
++++ b/src/libsacprelude/sacprelude.sac
+@@ -152,8 +152,3 @@ external bool is_##typ (SACarg arg);                                           \
+     PRINTME(HASH)pragma refcounting [1]
+ 
+ BUILT_IN(SACARG_IS)
+-
+-external bool is_udt (int base, SACarg arg);
+-    #pragma header "libsac/interface/sacarg.h"
+-    #pragma linkname "SACARGisUdt"
+-    #pragma linksign [0,1,2]

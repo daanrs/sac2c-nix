@@ -21,16 +21,16 @@
 }@inputs:
 let
   # git describe --tags --abbrev=4
-  version = "v2.0.0-Tintigny";
+  version = "2.1.0-PuurGeluk-219-gd30c2";
 
   pname = "sac2c";
 
   src = fetchFromGitLab {
     domain = "gitlab.sac-home.org";
     owner = "sac-group";
-    repo = "sac2c";
-    rev = "4c765f73fca263ba88be1e746c659f318603b93d";
-    hash = "sha256-cKOKF2H9N1/tLXW1I9Pt8+hvXq4hu7b5gYPMXGyzF18=";
+    repo = pname;
+    tag = "v${version}";
+    hash = "sha256-OXNQ8d8U5pFODGXYoiUqHdx9SFfQFBjfffTR7oh04uo=";
   };
 
   stdenv = throw "Use effectiveStdenv instead";
@@ -51,16 +51,21 @@ effectiveStdenv.mkDerivation (drv: {
   ]
   ++ lib.optionals cudaSupport [ cudatoolkit ];
 
+  patches = [
+    ./remove_is_udt.patch
+    ./620.patch
+  ];
+
   postPatch = ''
     substituteInPlace cmake/sac2c-version-related.cmake \
-      --replace-fail ''\'''${GIT_EXECUTABLE} describe --tags --abbrev=4 --dirty' "echo ${version}" \
+      --replace-fail ''\'''${GIT_EXECUTABLE} describe --tags --abbrev=4 --dirty' "echo v${version}" \
       --replace-fail ''\'''${GIT_EXECUTABLE} diff-index --quiet HEAD' "echo" \
       --replace-fail '="''${GIT_EXECUTABLE}"' "=echo" \
       --replace-fail "FIND_PACKAGE (Git)" "" \
       --replace-fail "GIT_FOUND" 1
 
     substituteInPlace cmake/check-repo-version.cmake \
-      --replace-fail ''\'''${GIT_COMMAND} describe --tags --abbrev=4 --dirty' "echo ${version}"
+      --replace-fail ''\'''${GIT_COMMAND} describe --tags --abbrev=4 --dirty' "echo v${version}"
   '';
 
   # Sac tries to write sac2crc to home directory.
@@ -100,4 +105,31 @@ effectiveStdenv.mkDerivation (drv: {
     "test-mowl-SE2"
     "test-void"
   ];
+
+  preFixup = ''
+    for d in $out/lib/sac2c/${version}/modlibs/{host/*,tree/host/*}; do
+      if [ -d "$d" ]; then
+        for f in "$d"/*; do
+          if [ -f "$f" ] && isELF "$f"; then
+            # add the directory it exists in, since it might depend on other libraries
+            patchelf --add-rpath "$d" "$f"
+
+            # # this is not specified as needed but I think the sac2c compiler manages it?
+            # if [[ "$(basename "$f")" == "libsacprelude_pMod.so" ]]; then
+            #   patchelf --add-needed "libsac_p.so" "$f"
+            # fi
+
+            # add runtime directory
+            rt_d=$(sed 's|/modlibs/|/rt/|g' <<<"$d")
+            patchelf --add-rpath "$rt_d" "$f"
+
+            # remove directories outside the nix store
+            patchelf --shrink-rpath --allowed-rpath-prefixes "$NIX_STORE" "$f"
+
+            chmod +x "$f"
+          fi
+        done
+      fi
+    done
+  '';
 })

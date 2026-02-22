@@ -17,7 +17,7 @@
 }@inputs:
 let
   # git describe --tags --abbrev=4
-  version = "1.3";
+  version = "1.3-587-gd878";
 
   pname = "sac2c-stdlib";
 
@@ -25,9 +25,11 @@ let
     fetchSubmodules = true;
     owner = "SacBase";
     repo = "Stdlib";
-    # commit roughly the same time as the sac2c package v2
-    rev = "3686b4fdab53a107d76a65727a54dc07e075e7cd";
-    hash = "sha256-X9PlaxE2lTrATfDjKFiql7ol2+GNm/QCNu2QLp43VV0=";
+    # using a tag here causes an error because of the interaction with
+    # fetchsubmodules. I'm probably just doing something incorrectly. See also
+    # https://github.com/NixOS/nixpkgs/issues/26302
+    rev = "d8787b92201ea9d9765cb817de38ecdb9fc4ab46";
+    hash = "sha256-CMpFwrdzuNpdT1djGidw8hrCRzeX/vMm/JYGOA2usbY=";
   };
 
   stdenv = throw "Use effectiveStdenv instead";

@@ -1,0 +1,550 @@
+From 1a64d8c785bfa7f633e93a91e8fbdb294a067575 Mon Sep 17 00:00:00 2001
+From: Thomas Koopman <thomas.koopman@ru.nl>
+Date: Fri, 6 Feb 2026 16:40:10 +0100
+Subject: [PATCH 1/4] Case sensitivity issue, is called Uint in ast
+
+---
+ include/sacinterface.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/sacinterface.h b/include/sacinterface.h
+index 036dbca40..a3241020b 100644
+--- a/include/sacinterface.h
++++ b/include/sacinterface.h
+@@ -289,7 +289,7 @@ macro (Long, long, long int)                         \
+ macro (Longlong, longlong, long long int)            \
+ macro (UByte, ubyte, unsigned char)                  \
+ macro (UShort, ushort, unsigned short int)           \
+-macro (UInt, uint, unsigned int)                     \
++macro (Uint, uint, unsigned int)                     \
+ macro (ULong, ulong, unsigned long int)              \
+ macro (ULonglong, ulonglong, unsigned long long int) \
+ macro (Float, float, float)                          \
+-- 
+GitLab
+
+
+From c176cee1a34dd94c517428bfd9aa8b82e503fa43 Mon Sep 17 00:00:00 2001
+From: Thomas Koopman <thomas.koopman@ru.nl>
+Date: Thu, 12 Feb 2026 09:25:43 +0100
+Subject: [PATCH 2/4] Capitalize int type consistently in U<int>
+
+---
+ include/sacinterface.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/sacinterface.h b/include/sacinterface.h
+index a3241020b..036dbca40 100644
+--- a/include/sacinterface.h
++++ b/include/sacinterface.h
+@@ -289,7 +289,7 @@ macro (Long, long, long int)                         \
+ macro (Longlong, longlong, long long int)            \
+ macro (UByte, ubyte, unsigned char)                  \
+ macro (UShort, ushort, unsigned short int)           \
+-macro (Uint, uint, unsigned int)                     \
++macro (UInt, uint, unsigned int)                     \
+ macro (ULong, ulong, unsigned long int)              \
+ macro (ULonglong, ulonglong, unsigned long long int) \
+ macro (Float, float, float)                          \
+-- 
+GitLab
+
+
+From bbda6857f61cc8b1706520560036983bfb291902 Mon Sep 17 00:00:00 2001
+From: Thomas Koopman <thomas.koopman@ru.nl>
+Date: Wed, 25 Feb 2026 10:25:32 +0100
+Subject: [PATCH 3/4] Bool was missing because we still have some typedef int
+ bool's. stdbool was added in C99, so I have introduced this everywhere
+
+---
+ include/sacinterface.h        |   8 +--
+ src/libsac2c/scanparse/lex.h  |   3 +-
+ src/libsac2c/scanparse/trie.h |   2 +-
+ src/maketools/cb/cb.c         | 104 ++++++++++++++++------------------
+ 4 files changed, 55 insertions(+), 62 deletions(-)
+
+diff --git a/include/sacinterface.h b/include/sacinterface.h
+index 036dbca40..bb3f103a4 100644
+--- a/include/sacinterface.h
++++ b/include/sacinterface.h
+@@ -17,8 +17,7 @@
+  */
+ typedef SAC_INT sac_int;
+ 
+-// TODO: there is a mismatch between this bool and the one we use internally.....
+-// #include <stdbool.h>
++#include <stdbool.h>
+ 
+ #ifndef SAC_C_EXTERN
+ #define SAC_C_EXTERN extern
+@@ -295,9 +294,8 @@ macro (ULonglong, ulonglong, unsigned long long int) \
+ macro (Float, float, float)                          \
+ macro (Double, double, double)                       \
+ macro (LongDouble, longdouble, long double)          \
+-macro (Char, char, unsigned char)
+-
+-//macro (Bool, bool, bool)
++macro (Char, char, unsigned char)                    \
++macro (Bool, bool, bool)
+ 
+ /***
+  * global SACtypes for all built-in types.
+diff --git a/src/libsac2c/scanparse/lex.h b/src/libsac2c/scanparse/lex.h
+index 822ad409a..e31cb8377 100644
+--- a/src/libsac2c/scanparse/lex.h
++++ b/src/libsac2c/scanparse/lex.h
+@@ -21,7 +21,8 @@ static inline int xfprintf (FILE *f, const char *fmt, ...);
+ #define assert(...) DBUG_ASSERT (__VA_ARGS__)
+ #define unreachable(...) DBUG_UNREACHABLE (__VA_ARGS__)
+ #else
+-typedef int bool;
++
++#include <stdbool.h>
+ 
+ struct location {
+     const char *fname;
+diff --git a/src/libsac2c/scanparse/trie.h b/src/libsac2c/scanparse/trie.h
+index f2465f626..206c2969f 100644
+--- a/src/libsac2c/scanparse/trie.h
++++ b/src/libsac2c/scanparse/trie.h
+@@ -4,7 +4,7 @@
+ #include <sys/types.h>
+ 
+ #ifdef TRIE_MAIN
+-  typedef int bool;
++    #include <stdbool.h>
+ #endif
+ 
+ #if !defined (true) || !defined (false)
+diff --git a/src/maketools/cb/cb.c b/src/maketools/cb/cb.c
+index b3163e280..b65076ff6 100644
+--- a/src/maketools/cb/cb.c
++++ b/src/maketools/cb/cb.c
+@@ -7,16 +7,10 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
++#include <stdbool.h>
+ 
+ #include "getoptions.h"
+ 
+-/* boolean */
+-#ifndef __cplusplus
+-typedef int bool;
+-#endif
+-#define FALSE 0
+-#define TRUE 1
+-
+ #define VERS "Code Beautifier for C/C++/Java          Version 2.3 (Sep 19, 2002)\n"
+ #define PGM "cb"
+ 
+@@ -29,16 +23,16 @@ static int c_level = 0;
+ static int save_p_flg[20][10];
+ static bool save_ind[20][10];
+ static int if_lev = 0;
+-static bool if_flg = FALSE;
++static bool if_flg = false;
+ static int level = 0;
+ static bool ind[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+ static int p_flg[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+ static char p_char;
+-static bool a_flg = FALSE;
++static bool a_flg = false;
+ static int save_tabs[20][10];
+ 
+ static char cc;
+-static bool s_flg = TRUE;
++static bool s_flg = true;
+ static int peek = (-1);
+ static int tabs = 0;
+ static int last_char;
+@@ -141,19 +135,19 @@ indent_puts (int indent, bool use_tabs)
+                 tabs++;
+             }
+             p_tabs (indent, use_tabs);
+-            s_flg = FALSE;
++            s_flg = false;
+             if (a_flg && (tabs > 0) && (string[0] != '{')) {
+                 tabs--;
+             }
+-            a_flg = FALSE;
++            a_flg = false;
+         }
+         fprintf (stdout, "%s", string);
+         pos = 0;
+         string[0] = '\0';
+     } else {
+         if (s_flg) {
+-            s_flg = FALSE;
+-            a_flg = FALSE;
++            s_flg = false;
++            a_flg = false;
+         }
+     }
+ }
+@@ -164,7 +158,7 @@ lookup (const char *tab[])
+ {
+     char r;
+     int l, kk, k, i;
+-    bool res = FALSE;
++    bool res = false;
+ 
+     if (pos >= 1) {
+         kk = 0;
+@@ -176,7 +170,7 @@ lookup (const char *tab[])
+             for (k = kk; (r = tab[i][l++]) == string[k] && (r != '\0'); k++)
+                 ;
+             if ((r == '\0') && (string[k] < 'a' || string[k] > 'z')) {
+-                res = TRUE;
++                res = true;
+                 break;
+             }
+         }
+@@ -206,7 +200,7 @@ beg:
+     }
+     if (ch == '\n') {
+         indent_puts (indent, use_tabs);
+-        a_flg = TRUE;
++        a_flg = true;
+         goto beg;
+     }
+ 
+@@ -220,7 +214,7 @@ gotelse (void)
+     tabs = save_tabs[c_level][if_lev];
+     p_flg[level] = save_p_flg[c_level][if_lev];
+     ind[level] = save_ind[c_level][if_lev];
+-    if_flg = TRUE;
++    if_flg = true;
+ }
+ 
+ /* special edition of put string for comment processing */
+@@ -232,7 +226,7 @@ putcoms (int indent, bool use_tabs)
+     if (pos > 0) {
+         if (s_flg) {
+             p_tabs (indent, use_tabs);
+-            s_flg = FALSE;
++            s_flg = false;
+         }
+         string[pos] = '\0';
+         i = 0;
+@@ -271,7 +265,7 @@ cpp_putcoms (int indent, bool use_tabs)
+     if (pos > 0) {
+         if (s_flg) {
+             p_tabs (indent, use_tabs);
+-            s_flg = FALSE;
++            s_flg = false;
+         }
+         string[pos] = '\0';
+         fprintf (stdout, "%s", string);
+@@ -289,7 +283,7 @@ comment (FILE *infile, int indent, bool use_tabs)
+     save_s_flg = s_flg;
+ rep:
+     while ((c = string[pos++] = getchr (infile)) != '*') {
+-        s_flg = TRUE;
++        s_flg = true;
+         if (c == '\n') {
+             putcoms (indent, use_tabs);
+         }
+@@ -300,13 +294,13 @@ gotstar:
+         if (c == '*') {
+             goto gotstar;
+         }
+-        s_flg = TRUE;
++        s_flg = true;
+         if (c == '\n') {
+             putcoms (indent, use_tabs);
+         }
+         goto rep;
+     }
+-    s_flg = TRUE;
++    s_flg = true;
+     putcoms (indent, use_tabs);
+     s_flg = save_s_flg;
+ }
+@@ -319,7 +313,7 @@ cpp_comment (FILE *infile, int indent, bool use_tabs)
+         string[pos++] = (char)c;
+     }
+     cpp_putcoms (indent, use_tabs);
+-    s_flg = TRUE;
++    s_flg = true;
+ }
+ 
+ /* read to new_line */
+@@ -349,7 +343,7 @@ getnl (FILE *infile, int indent, bool use_tabs)
+             peek = (-1);
+             cpp_comment (infile, indent, use_tabs);
+ 
+-            return (TRUE);
++            return (true);
+         } else {
+             string[pos++] = '/';
+         }
+@@ -358,11 +352,11 @@ getnl (FILE *infile, int indent, bool use_tabs)
+         peek = (-1);
+ 
+         tabs = save_tabs;
+-        return (TRUE);
++        return (true);
+     }
+ 
+     tabs = save_tabs;
+-    return (FALSE);
++    return (false);
+ }
+ 
+ /* scans and processes the file */
+@@ -374,8 +368,8 @@ process_file (FILE *infile, int indent, bool remove_newlines, bool use_tabs)
+     int s_level[10];
+     int save_if_lev[10];
+     bool save_if_flg[10];
+-    bool e_flg = FALSE;
+-    bool q_flg = FALSE;
++    bool e_flg = false;
++    bool q_flg = false;
+     int nl_flag = 0;
+     char l_char = '\0';
+ 
+@@ -410,7 +404,7 @@ process_file (FILE *infile, int indent, bool remove_newlines, bool use_tabs)
+                     string[pos++] = (char)c;
+                 }
+                 indent_puts (indent, use_tabs);
+-                s_flg = FALSE;
++                s_flg = false;
+                 break;
+             }
+             if ((!s_flg) || (pos > 0)) {
+@@ -440,13 +434,13 @@ process_file (FILE *infile, int indent, bool remove_newlines, bool use_tabs)
+             } else {
+                 fprintf (stdout, "\n");
+             }
+-            s_flg = TRUE;
+-            if (e_flg == TRUE) {
++            s_flg = true;
++            if (e_flg == true) {
+                 p_flg[level]++;
+                 tabs++;
+             } else {
+                 if (p_char == l_char) {
+-                    a_flg = TRUE;
++                    a_flg = true;
+                 }
+             }
+             break;
+@@ -457,7 +451,7 @@ process_file (FILE *infile, int indent, bool remove_newlines, bool use_tabs)
+             save_if_lev[c_level] = if_lev;
+             save_if_flg[c_level] = if_flg;
+             if_lev = 0;
+-            if_flg = FALSE;
++            if_flg = false;
+             c_level++;
+             if (s_flg && (p_flg[level] != 0)) {
+                 p_flg[level]--;
+@@ -469,9 +463,9 @@ process_file (FILE *infile, int indent, bool remove_newlines, bool use_tabs)
+             indent_puts (indent, use_tabs);
+             nl_flag = 2;
+             tabs++;
+-            s_flg = TRUE;
++            s_flg = true;
+             if (p_flg[level] > 0) {
+-                ind[level] = TRUE;
++                ind[level] = true;
+                 level++;
+                 s_level[level] = c_level;
+             }
+@@ -494,7 +488,7 @@ process_file (FILE *infile, int indent, bool remove_newlines, bool use_tabs)
+             getnl (infile, indent, use_tabs);
+             indent_puts (indent, use_tabs);
+             nl_flag = 2;
+-            s_flg = TRUE;
++            s_flg = true;
+             if (c_level < s_level[level]) {
+                 if (level > 0) {
+                     level--;
+@@ -503,7 +497,7 @@ process_file (FILE *infile, int indent, bool remove_newlines, bool use_tabs)
+             if (ind[level]) {
+                 tabs -= p_flg[level];
+                 p_flg[level] = 0;
+-                ind[level] = FALSE;
++                ind[level] = false;
+             }
+             break;
+         case '"':
+@@ -519,7 +513,7 @@ process_file (FILE *infile, int indent, bool remove_newlines, bool use_tabs)
+                 }
+                 if (cc == '\n') {
+                     indent_puts (indent, use_tabs);
+-                    s_flg = TRUE;
++                    s_flg = true;
+                 }
+             }
+             string[pos++] = cc;
+@@ -538,11 +532,11 @@ process_file (FILE *infile, int indent, bool remove_newlines, bool use_tabs)
+             getnl (infile, indent, use_tabs);
+             indent_puts (indent, use_tabs);
+             nl_flag = 2;
+-            s_flg = TRUE;
++            s_flg = true;
+             if (if_lev > 0) {
+                 if (if_flg) {
+                     if_lev--;
+-                    if_flg = FALSE;
++                    if_flg = false;
+                 } else {
+                     if_lev = 0;
+                 }
+@@ -557,7 +551,7 @@ process_file (FILE *infile, int indent, bool remove_newlines, bool use_tabs)
+             string[pos++] = getchr (infile);
+             break;
+         case '?':
+-            q_flg = TRUE;
++            q_flg = true;
+             string[pos++] = (char)c;
+             break;
+         case ':':
+@@ -571,7 +565,7 @@ process_file (FILE *infile, int indent, bool remove_newlines, bool use_tabs)
+             }
+ 
+             if (q_flg) {
+-                q_flg = FALSE;
++                q_flg = false;
+                 break;
+             }
+ 
+@@ -580,7 +574,7 @@ process_file (FILE *infile, int indent, bool remove_newlines, bool use_tabs)
+                 indent_puts (indent, use_tabs);
+                 tabs++;
+             } else {
+-                s_flg = FALSE;
++                s_flg = false;
+                 indent_puts (indent, use_tabs);
+             }
+             if ((peek = getchr (infile)) == ';') {
+@@ -590,7 +584,7 @@ process_file (FILE *infile, int indent, bool remove_newlines, bool use_tabs)
+             getnl (infile, indent, use_tabs);
+             indent_puts (indent, use_tabs);
+             nl_flag = 2;
+-            s_flg = TRUE;
++            s_flg = true;
+             break;
+         case '/':
+             string[pos++] = (char)c;
+@@ -625,11 +619,11 @@ process_file (FILE *infile, int indent, bool remove_newlines, bool use_tabs)
+             if (getnl (infile, indent, use_tabs)) {
+                 peek = '\n';
+                 if (paren != 0) {
+-                    a_flg = TRUE;
++                    a_flg = true;
+                 } else if (tabs > 0) {
+                     p_flg[level]++;
+                     tabs++;
+-                    ind[level] = FALSE;
++                    ind[level] = false;
+                 }
+             }
+             break;
+@@ -639,9 +633,9 @@ process_file (FILE *infile, int indent, bool remove_newlines, bool use_tabs)
+                 string[pos++] = cc;
+             }
+             string[pos++] = cc;
+-            s_flg = FALSE;
++            s_flg = false;
+             indent_puts (indent, use_tabs);
+-            s_flg = TRUE;
++            s_flg = true;
+             break;
+         case '(':
+             string[pos++] = (char)c;
+@@ -668,7 +662,7 @@ process_file (FILE *infile, int indent, bool remove_newlines, bool use_tabs)
+                     peek = '\n';
+                     p_flg[level]++;
+                     tabs++;
+-                    ind[level] = FALSE;
++                    ind[level] = false;
+                 }
+                 break;
+             }
+@@ -678,7 +672,7 @@ process_file (FILE *infile, int indent, bool remove_newlines, bool use_tabs)
+                 save_p_flg[c_level][if_lev] = p_flg[level];
+                 save_ind[c_level][if_lev] = ind[level];
+                 if_lev++;
+-                if_flg = TRUE;
++                if_flg = true;
+             }
+         }
+     }
+@@ -692,8 +686,8 @@ main (int argc, char *argv[])
+ {
+     FILE *infile = NULL;
+     int indent = 2;
+-    bool remove_newlines = FALSE;
+-    bool use_tabs = FALSE;
++    bool remove_newlines = false;
++    bool use_tabs = false;
+     int ret;
+ 
+     /* process arguments */
+@@ -703,8 +697,8 @@ main (int argc, char *argv[])
+     ARGS_FLAG ("V", printf (VERS); /* tell the world about version */
+                exit (0););
+     ARGS_OPTION ("i", ARG_RANGE (indent, 1, 8));
+-    ARGS_FLAG ("r", remove_newlines = TRUE;);
+-    ARGS_FLAG ("t", use_tabs = TRUE;);
++    ARGS_FLAG ("r", remove_newlines = true;);
++    ARGS_FLAG ("t", use_tabs = true;);
+     ARGS_ARGUMENT (if ((infile = fopen (ARG, "r")) == NULL) {
+         fprintf (stderr, "File not found: %s\n", ARG);
+         exit (2);
+-- 
+GitLab
+
+
+From 3c6645f9e18b505d9c12e7ab3fc4504c1aaaf78c Mon Sep 17 00:00:00 2001
+From: Thomas Koopman <thomas.koopman@ru.nl>
+Date: Wed, 25 Feb 2026 11:19:29 +0100
+Subject: [PATCH 4/4] Fix macro issue
+
+---
+ include/sacinterface.h          | 2 +-
+ src/libsac/interface/sactypes.c | 8 ++++++++
+ 2 files changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/include/sacinterface.h b/include/sacinterface.h
+index bb3f103a4..a3af26b2b 100644
+--- a/include/sacinterface.h
++++ b/include/sacinterface.h
+@@ -295,7 +295,7 @@ macro (Float, float, float)                          \
+ macro (Double, double, double)                       \
+ macro (LongDouble, longdouble, long double)          \
+ macro (Char, char, unsigned char)                    \
+-macro (Bool, bool, bool)
++macro (Bool, bool, _Bool) /* Note bool is a macro, not a C-type */
+ 
+ /***
+  * global SACtypes for all built-in types.
+diff --git a/src/libsac/interface/sactypes.c b/src/libsac/interface/sactypes.c
+index 7d460684f..8b144777d 100644
+--- a/src/libsac/interface/sactypes.c
++++ b/src/libsac/interface/sactypes.c
+@@ -32,11 +32,19 @@
+  * Creating the global variables for all built-in types:
+  */
+ 
++/**
++ * bool is not a C-type, only _Bool is. bool is a macro that is defined as
++ * _Bool in stdbool.h. As we do not want this expansion, we temporarily
++ * undefine it.
++ **/
++#undef bool
++
+ #define BUILTIN_SACTYPES_C(Name, name, ctype)                                 \
+ SAC_DEFINE_SACTYPE (_MAIN, name, sizeof (ctype), NULL, NULL)
+ 
+ CREATE_FOR_BUILTIN (BUILTIN_SACTYPES_C)
+ 
++#define bool _Bool /* Yes, this is standard-compliant */
+ 
+ 
+ 
+-- 
+GitLab
+
