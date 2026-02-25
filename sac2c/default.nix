@@ -56,6 +56,7 @@ effectiveStdenv.mkDerivation (finalAttrs: {
   ];
 
   postPatch = ''
+    # Fix the issues with .git not existing in a nix build
     substituteInPlace cmake/sac2c-version-related.cmake \
       --replace-fail ''\'''${GIT_EXECUTABLE} describe --tags --abbrev=4 --dirty' "echo v${version}" \
       --replace-fail ''\'''${GIT_EXECUTABLE} diff-index --quiet HEAD' "echo" \
@@ -65,6 +66,15 @@ effectiveStdenv.mkDerivation (finalAttrs: {
 
     substituteInPlace cmake/check-repo-version.cmake \
       --replace-fail ''\'''${GIT_COMMAND} describe --tags --abbrev=4 --dirty' "echo v${version}"
+
+    # We dont need to prepend every installation path with sac2c/$version
+    substituteInPlace cmake/sac2c/config.cmake \
+      --replace-fail '/sac2c/''${SAC2C_VERSION}' "" \
+      --replace-fail 'include/''${BUILD_TYPE_NAME}' 'include/'
+
+    substituteInPlace scripts/sac2c-version-manager.in \
+      --replace-fail 'link_src = os.path.join (prefix, "libexec", "sac2c", version, *pp)' \
+        'link_src = os.path.join (prefix, "libexec", *pp)'
   '';
 
   # Sac tries to write sac2crc to home directory.
