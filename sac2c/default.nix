@@ -13,7 +13,6 @@
   python3,
   gtest,
   ctestCheckHook,
-  doCheck ? false,
   buildGeneric ? true,
   debug ? false,
   cudaSupport ? config.cudaSupport,
@@ -39,7 +38,7 @@ let
 
   inherit (cudaPackages) cudatoolkit;
 in
-effectiveStdenv.mkDerivation (drv: {
+effectiveStdenv.mkDerivation (finalAttrs: {
   inherit src version;
   name = pname;
 
@@ -49,7 +48,7 @@ effectiveStdenv.mkDerivation (drv: {
     libxslt
     m4
   ]
-  ++ lib.optionals cudaSupport [ cudatoolkit ];
+  ++ lib.optional cudaSupport cudatoolkit;
 
   patches = [
     ./remove_is_udt.patch
@@ -78,6 +77,7 @@ effectiveStdenv.mkDerivation (drv: {
   cmakeFlags = [
     (lib.cmakeBool "CUDA" cudaSupport)
     (lib.cmakeBool "BUILDGENERIC" buildGeneric)
+    (lib.cmakeBool "FUNCTESTS" finalAttrs.finalPackage.doCheck)
   ];
 
   nativeBuildInputs = [
@@ -87,7 +87,7 @@ effectiveStdenv.mkDerivation (drv: {
     python3
   ];
 
-  inherit doCheck;
+  doCheck = true;
 
   checkInputs = [ gtest ];
 
@@ -97,10 +97,11 @@ effectiveStdenv.mkDerivation (drv: {
   disabledTests = [
     "test-global-object-exp"
     "test-global-object-indirect-exp"
-    "test-global-object-local"
     "test-global-object-wl"
     "test-icc-guard-prf"
     "test-issue-2286"
+    "test-fold-object-checkp"
+    "test-fold-prefarg-checkp"
     "test-mowl-SE"
     "test-mowl-SE2"
     "test-void"

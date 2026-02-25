@@ -11,7 +11,6 @@
   pkg-config,
   debug ? false,
   buildGeneric ? true,
-  doCheck ? false,
   cudaSupport ? config.cudaSupport,
   cudaPackages ? { },
 }@inputs:
@@ -38,7 +37,7 @@ let
 
   inherit (cudaPackages) cudatoolkit;
 in
-effectiveStdenv.mkDerivation (drv: {
+effectiveStdenv.mkDerivation (finalAttrs: {
   inherit src version;
   name = pname;
 
@@ -74,15 +73,15 @@ effectiveStdenv.mkDerivation (drv: {
           "mt_pth"
           "seq"
         ]
-        ++ lib.optionals doCheck [ "seq_checks" ]
-        ++ lib.optionals cudaSupport [ "cuda" ]
+        ++ lib.optional finalAttrs.finalPackage.doCheck "seq_checks"
+        ++ lib.optional cudaSupport "cuda"
       )
     ))
     (lib.cmakeBool "IS_RELEASE" (sac2c.cmakeBuildType == "RELEASE"))
     (lib.cmakeBool "BUILDGENERIC" buildGeneric)
   ];
 
-  buildInputs = lib.optionals cudaSupport [ cudatoolkit ];
+  buildInputs = lib.optional cudaSupport cudatoolkit;
 
   nativeBuildInputs = [
     bison
@@ -93,8 +92,7 @@ effectiveStdenv.mkDerivation (drv: {
     sac2c
   ];
 
-  # There are no unit test for the stdlib
-  doCheck = false;
+  doCheck = true;
 
   preFixup = ''
     for d in $out/lib/{host/*,tree/host/*}; do

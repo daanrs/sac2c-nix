@@ -62,7 +62,7 @@ in
             description = ''
               sac2c to check
             '';
-            default = cfg.packages.sac2c.override { doCheck = true; };
+            default = cfg.packages.sac2c;
           };
 
           checks.sac2c-stdlib = mkOption {
@@ -70,7 +70,7 @@ in
             description = ''
               sac2c-stdlib to check
             '';
-            default = cfg.packages.sac2c-stdlib.override { doCheck = true; };
+            default = cfg.packages.sac2c-stdlib;
           };
 
           devShells.sac2c = mkOption {
@@ -91,7 +91,6 @@ in
             '';
             default = pkgs.mkShell {
               inputsFrom = [ cfg.packages.sac2c-stdlib ];
-              packages = [ pkgs.gtest ];
             };
           };
 
