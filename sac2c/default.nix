@@ -12,6 +12,7 @@
   pkg-config,
   python3,
   gtest,
+  testers,
   ctestCheckHook,
   buildGeneric ? true,
   debug ? false,
@@ -117,6 +118,22 @@ effectiveStdenv.mkDerivation (finalAttrs: {
     "test-void"
   ];
 
+  # Generate pkg-config file so we can use the sacinterface header downstream.
+  # We don't expose any of the libraries since we shouldn't be using them in a
+  # c/c++ compiler directly anyway.
+  postInstall = ''
+    mkdir -p "$out/lib/pkgconfig"
+
+    cat > "$out/lib/pkgconfig/sac2c.pc" <<EOF
+    Name: sac2c
+    Description: sac2c headers
+    Version: ${finalAttrs.version}
+    Cflags: -I$out/include
+    EOF
+  '';
+
+  passthru.tests.pkg-config = testers.testMetaPkgConfig finalAttrs.finalPackage;
+
   preFixup = ''
     for d in $out/lib/modlibs/{host/*,tree/host/*}; do
       if [ -d "$d" ]; then
@@ -125,22 +142,20 @@ effectiveStdenv.mkDerivation (finalAttrs: {
             # add the directory it exists in, since it might depend on other libraries
             patchelf --add-rpath "$d" "$f"
 
-            # # this is not specified as needed but I think the sac2c compiler manages it?
-            # if [[ "$(basename "$f")" == "libsacprelude_pMod.so" ]]; then
-            #   patchelf --add-needed "libsac_p.so" "$f"
-            # fi
-
-            # add runtime directory
+            # add runtime directory, which is located at the same path with rt/
+            # instead of modlibs/
             rt_d=$(sed 's|/modlibs/|/rt/|g' <<<"$d")
             patchelf --add-rpath "$rt_d" "$f"
 
             # remove directories outside the nix store
             patchelf --shrink-rpath --allowed-rpath-prefixes "$NIX_STORE" "$f"
-
-            chmod +x "$f"
           fi
         done
       fi
     done
   '';
+
+  meta = {
+    pkgConfigModules = [ "sac2c" ];
+  };
 })
