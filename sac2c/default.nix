@@ -118,7 +118,7 @@ effectiveStdenv.mkDerivation (finalAttrs: {
   ];
 
   preFixup = ''
-    for d in $out/lib/sac2c/${version}/modlibs/{host/*,tree/host/*}; do
+    for d in $out/lib/modlibs/{host/*,tree/host/*}; do
       if [ -d "$d" ]; then
         for f in "$d"/*; do
           if [ -f "$f" ] && isELF "$f"; then
