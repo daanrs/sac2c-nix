@@ -125,12 +125,9 @@ effectiveStdenv.mkDerivation (finalAttrs: {
     mkdir -p "$out/lib/pkgconfig"
 
     cat > "$out/lib/pkgconfig/sac2c.pc" <<EOF
-    prefix=$out
-    includedir=$out/include
-
     Name: sac2c
+    Description: sac2c headers
     Version: ${finalAttrs.version}
-    Requires:
     Cflags: -I$out/include
     EOF
   '';
