@@ -17,7 +17,7 @@ final: prev: {
     ];
 
     postBuild = ''
-      wrapProgram $out/bin/alacritty \
+      wrapProgram $out/bin/sac2c \
         --add-flags "-L${final.sac2c-stdlib}/lib" \
         --add-flags "-T${final.sac2c-stdlib}/lib"
     '';
