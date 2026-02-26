@@ -1,13 +1,25 @@
 final: prev: {
-  sac2c = final.callPackage ./sac2c { };
+  sac2c = prev.callPackage ./sac2c { };
 
-  sac2c-stdlib = final.callPackage ./sac2c-stdlib { };
+  sac2c-stdlib = prev.callPackage ./sac2c-stdlib { };
 
-  sac2c-with-stdlib = final.wrap-sac2c final.sac2c final.sac2c-stdlib;
+  sac2c-with-stdlib = prev.symlinkJoin {
+    name = "sac2c-with-stdlib";
 
-  wrap-sac2c =
-    prevSac2c: package:
-    final.writeShellScriptBin "sac2c" ''
-      exec ${prevSac2c}/bin/sac2c -L "${package}/lib" -T "${package}/lib" "$@"
+    paths = [ final.sac2c ];
+
+    buildInputs = [
+      final.sac2c-stdlib
+    ];
+
+    nativeBuildInputs = [
+      final.makeWrapper
+    ];
+
+    postBuild = ''
+      wrapProgram $out/bin/alacritty \
+        --add-flags "-L${final.sac2c-stdlib}/lib" \
+        --add-flags "-T${final.sac2c-stdlib}/lib"
     '';
+  };
 }
