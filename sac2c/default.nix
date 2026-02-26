@@ -161,7 +161,11 @@ effectiveStdenv.mkDerivation (finalAttrs: {
     EOF
   '') targetSBIs);
 
-  passthru.tests.pkg-config = testers.testMetaPkgConfig finalAttrs.finalPackage;
+  passthru = {
+    inherit enableCuda enableThreads;
+
+    tests.pkg-config = testers.testMetaPkgConfig finalAttrs.finalPackage;
+  };
 
   preFixup = ''
     for d in $out/lib/modlibs/{host/*,tree/host/*}; do

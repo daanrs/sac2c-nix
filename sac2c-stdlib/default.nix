@@ -11,7 +11,8 @@
   pkg-config,
   debug ? false,
   buildGeneric ? true,
-  cudaSupport ? config.cudaSupport,
+  enableThreads ? sac2c.enableThreads,
+  enableCuda ? sac2c.enableCuda,
   cudaPackages ? { },
 }@inputs:
 let
@@ -33,7 +34,7 @@ let
 
   stdenv = throw "Use effectiveStdenv instead";
 
-  effectiveStdenv = if cudaSupport then cudaPackages.backendStdenv else inputs.stdenv;
+  effectiveStdenv = if enableCuda then cudaPackages.backendStdenv else inputs.stdenv;
 
   inherit (cudaPackages) cudatoolkit;
 in
@@ -70,18 +71,17 @@ effectiveStdenv.mkDerivation (finalAttrs: {
     (lib.cmakeOptionType "list" "TARGETS" (
       lib.concatStringsSep ";" (
         [
-          "mt_pth"
           "seq"
         ]
-        ++ lib.optional finalAttrs.finalPackage.doCheck "seq_checks"
-        ++ lib.optional cudaSupport "cuda"
+        ++ lib.optional enableThreads "mt_pth"
+        ++ lib.optional enableCuda "cuda"
       )
     ))
     (lib.cmakeBool "IS_RELEASE" (sac2c.cmakeBuildType == "RELEASE"))
     (lib.cmakeBool "BUILDGENERIC" buildGeneric)
   ];
 
-  buildInputs = lib.optional cudaSupport cudatoolkit;
+  buildInputs = lib.optional enableCuda cudatoolkit;
 
   nativeBuildInputs = [
     bison
