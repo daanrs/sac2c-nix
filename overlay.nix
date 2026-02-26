@@ -3,23 +3,5 @@ final: prev: {
 
   sac2c-stdlib = prev.callPackage ./sac2c-stdlib { };
 
-  sac2c-with-stdlib = prev.symlinkJoin {
-    name = "sac2c-with-stdlib";
-
-    paths = [ final.sac2c ];
-
-    buildInputs = [
-      final.sac2c-stdlib
-    ];
-
-    nativeBuildInputs = [
-      final.makeWrapper
-    ];
-
-    postBuild = ''
-      wrapProgram $out/bin/sac2c \
-        --add-flags "-L${final.sac2c-stdlib}/lib" \
-        --add-flags "-T${final.sac2c-stdlib}/lib"
-    '';
-  };
+  sac2c-with-stdlib = prev.callPackage ./sac2c-with-stdlib { };
 }
