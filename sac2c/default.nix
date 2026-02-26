@@ -14,9 +14,10 @@
   gtest,
   testers,
   ctestCheckHook,
-  buildGeneric ? true,
   debug ? false,
-  cudaSupport ? config.cudaSupport,
+  buildGeneric ? true,
+  enableThreads ? true,
+  enableCuda ? config.cudaSupport,
   cudaPackages ? { },
 }@inputs:
 let
@@ -33,9 +34,32 @@ let
     hash = "sha256-OXNQ8d8U5pFODGXYoiUqHdx9SFfQFBjfffTR7oh04uo=";
   };
 
+  postfix = if debug then "_d" else "_p";
+
   stdenv = throw "Use effectiveStdenv instead";
 
-  effectiveStdenv = if cudaSupport then cudaPackages.backendStdenv else inputs.stdenv;
+  effectiveStdenv = if enableCuda then cudaPackages.backendStdenv else inputs.stdenv;
+
+  # RT_TARGETS and their SBI names
+  targets = {
+    seq = "seq";
+    seq_checks = "seq";
+  }
+  // lib.optionalAttrs enableThreads {
+    mt_pth = "mt-pth";
+    mt_pth_rt = "mt-pth-rtspec";
+    mt_pth_xt = "mt-pth-xt";
+  }
+  // lib.optionalAttrs enableCuda {
+    cuda = "cuda";
+    cuda_alloc = "cuda-alloc";
+    cuda_man = "cuda-man";
+    cuda_manp = "cuda-man-pref";
+    cuda_reg = "cuda-reg";
+    multi_gpu = "cuda-man-multi";
+  };
+
+  targetSBIs = builtins.attrValues targets;
 
   inherit (cudaPackages) cudatoolkit;
 in
@@ -49,7 +73,7 @@ effectiveStdenv.mkDerivation (finalAttrs: {
     libxslt
     m4
   ]
-  ++ lib.optional cudaSupport cudatoolkit;
+  ++ lib.optional enableCuda cudatoolkit;
 
   patches = [
     ./remove_is_udt.patch
@@ -86,7 +110,8 @@ effectiveStdenv.mkDerivation (finalAttrs: {
   cmakeBuildType = if debug then "DEBUG" else "RELEASE";
 
   cmakeFlags = [
-    (lib.cmakeBool "CUDA" cudaSupport)
+    (lib.cmakeBool "CUDA" enableCuda)
+    (lib.cmakeBool "MT" enableThreads)
     (lib.cmakeBool "BUILDGENERIC" buildGeneric)
     (lib.cmakeBool "FUNCTESTS" finalAttrs.finalPackage.doCheck)
   ];
@@ -118,19 +143,23 @@ effectiveStdenv.mkDerivation (finalAttrs: {
     "test-void"
   ];
 
-  # Generate pkg-config file so we can use the sacinterface header downstream.
-  # We don't expose any of the libraries since we shouldn't be using them in a
-  # c/c++ compiler directly anyway.
+  # Generate pkg-configs for the runtime libraries
   postInstall = ''
     mkdir -p "$out/lib/pkgconfig"
+  ''
+  + (lib.concatMapStringsSep "\n" (tar: ''
+    cat > "$out/lib/pkgconfig/sac2c-${tar}.pc" <<EOF
+    prefix=$out
+    includedir=\''${prefix}/include
+    libdir=\''${prefix}/lib/rt/host/${tar}
 
-    cat > "$out/lib/pkgconfig/sac2c.pc" <<EOF
-    Name: sac2c
-    Description: sac2c headers
+    Name: sac2c-${tar}
+    Description: sac2c runtime libraries for target ${tar}
     Version: ${finalAttrs.version}
-    Cflags: -I$out/include
+    Libs: -L\''${libdir} -lsac2c${postfix}
+    Cflags: -I\''${includedir}
     EOF
-  '';
+  '') targetSBIs);
 
   passthru.tests.pkg-config = testers.testMetaPkgConfig finalAttrs.finalPackage;
 
@@ -156,6 +185,6 @@ effectiveStdenv.mkDerivation (finalAttrs: {
   '';
 
   meta = {
-    pkgConfigModules = [ "sac2c" ];
+    pkgConfigModules = lib.map (x: "sac2c-${x}") targetSBIs;
   };
 })
