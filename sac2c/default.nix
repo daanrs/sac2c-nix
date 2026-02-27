@@ -148,15 +148,15 @@ effectiveStdenv.mkDerivation (finalAttrs: {
     mkdir -p "$out/lib/pkgconfig"
   ''
   + (lib.concatMapStringsSep "\n" (tar: ''
-    cat > "$out/lib/pkgconfig/sac2c-${tar}.pc" <<EOF
+    cat > "$out/lib/pkgconfig/sac-${tar}.pc" <<EOF
     prefix=$out
     includedir=\''${prefix}/include
     libdir=\''${prefix}/lib/rt/host/${tar}
 
-    Name: sac2c-${tar}
-    Description: sac2c runtime libraries for target ${tar}
+    Name: sac-${tar}
+    Description: sac runtime library for target ${tar}
     Version: ${finalAttrs.version}
-    Libs: -L\''${libdir} -lsac2c${postfix}
+    Libs: -L\''${libdir} -lsac${postfix}
     Cflags: -I\''${includedir}
     EOF
   '') targetSBIs);
