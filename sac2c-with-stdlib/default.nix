@@ -24,5 +24,5 @@ symlinkJoin {
       --add-flags "-T${sac2c-stdlib}/lib"
   '';
 
-  inherit (sac2c) meta;
+  inherit (sac2c) meta passthru;
 }
