@@ -147,19 +147,29 @@ effectiveStdenv.mkDerivation (finalAttrs: {
   postInstall = ''
     mkdir -p "$out/lib/pkgconfig"
   ''
-  + (lib.concatMapStringsSep "\n" (tar: ''
-    cat > "$out/lib/pkgconfig/sac2c-${tar}.pc" <<EOF
-    prefix=$out
-    includedir=\''${prefix}/include
-    libdir=\''${prefix}/lib/rt/host/${tar}
+  + (lib.concatMapStringsSep "\n" (
+    tar:
+    let
+      names = [
+        "sacrtspec-${tar}"
+        "sac-${tar}"
+      ];
+    in
+    lib.concatMapStringsSep "\n" (name: ''
+      cat > "$out/lib/pkgconfig/${name}.pc" <<EOF
+      prefix=$out
+      includedir=\''${prefix}/include
+      libdir=\''${prefix}/lib/rt/host/${tar}
 
-    Name: sac2c-${tar}
-    Description: sac2c runtime libraries for target ${tar}
-    Version: ${finalAttrs.version}
-    Libs: -L\''${libdir} -lsac2c${postfix}
-    Cflags: -I\''${includedir}
-    EOF
-  '') targetSBIs);
+      Name: ${name}
+      Description: sac rtspec library for target ${tar}
+      Version: ${finalAttrs.version}
+      Libs: -L\''${libdir} -l${name}${postfix}
+      Cflags: -I\''${includedir}
+      EOF
+    '') names
+
+  ) targetSBIs);
 
   passthru = {
     inherit enableCuda enableThreads;
