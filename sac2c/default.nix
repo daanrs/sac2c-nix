@@ -150,24 +150,24 @@ effectiveStdenv.mkDerivation (finalAttrs: {
   + (lib.concatMapStringsSep "\n" (
     tar:
     let
-      names = [
-        "sacrtspec-${tar}"
-        "sac-${tar}"
+      libs = [
+        "sacrtspec"
+        "sac"
       ];
     in
-    lib.concatMapStringsSep "\n" (name: ''
-      cat > "$out/lib/pkgconfig/${name}.pc" <<EOF
+    lib.concatMapStringsSep "\n" (l: ''
+      cat > "$out/lib/pkgconfig/${l}-${tar}.pc" <<EOF
       prefix=$out
       includedir=\''${prefix}/include
       libdir=\''${prefix}/lib/rt/host/${tar}
 
-      Name: ${name}
+      Name: ${l}-${tar}
       Description: sac rtspec library for target ${tar}
       Version: ${finalAttrs.version}
-      Libs: -L\''${libdir} -l${name}${postfix}
+      Libs: -L\''${libdir} -l${l}${postfix}
       Cflags: -I\''${includedir}
       EOF
-    '') names
+    '') libs
 
   ) targetSBIs);
 
