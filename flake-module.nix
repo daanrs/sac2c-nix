@@ -80,6 +80,13 @@ in
             '';
             default = pkgs.mkShell {
               inputsFrom = [ cfg.packages.sac2c ];
+
+              env = {
+                # This ensures clangd can pickup on generated header files such
+                # as config.h.in
+                CMAKE_EXPORT_COMPILE_COMMANDS = true;
+              };
+
               packages = [ pkgs.gtest ];
             };
           };
