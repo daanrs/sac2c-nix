@@ -22,7 +22,7 @@
 }@inputs:
 let
   # git describe --tags --abbrev=4
-  version = "2.1.0-PuurGeluk-219-gd30c2";
+  version = "2.1.0-PuurGeluk-229-g32fe4";
 
   pname = "sac2c";
 
@@ -31,7 +31,7 @@ let
     owner = "sac-group";
     repo = pname;
     tag = "v${version}";
-    hash = "sha256-OXNQ8d8U5pFODGXYoiUqHdx9SFfQFBjfffTR7oh04uo=";
+    hash = "sha256-RGwdykY0PtC6aeQI+TWowgtOS++jZRYopaWbj33hVpQ=";
   };
 
   postfix = if debug then "_d" else "_p";
@@ -64,8 +64,7 @@ let
   inherit (cudaPackages) cudatoolkit;
 in
 effectiveStdenv.mkDerivation (finalAttrs: {
-  inherit src version;
-  name = pname;
+  inherit pname src version;
 
   buildInputs = [
     hwloc
@@ -77,7 +76,6 @@ effectiveStdenv.mkDerivation (finalAttrs: {
 
   patches = [
     ./remove_is_udt.patch
-    ./620.patch
   ];
 
   postPatch = ''
