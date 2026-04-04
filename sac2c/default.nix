@@ -8,6 +8,7 @@
   hwloc,
   m4,
   gcc,
+  ninja,
   cmake,
   pkg-config,
   python3,
@@ -17,6 +18,10 @@
   debug ? false,
   buildGeneric ? true,
   enableThreads ? true,
+  enableSeqChecks ? false,
+  # Ninja is much faster but fails if we also build the seq-checks because of
+  # conflicting targets
+  enableNinja ? !enableSeqChecks,
   enableCuda ? config.cudaSupport,
   cudaPackages ? { },
 }@inputs:
@@ -75,6 +80,7 @@ effectiveStdenv.mkDerivation (finalAttrs: {
   ++ lib.optional enableCuda cudatoolkit;
 
   patches = [
+    ./fix-ninja.patch
     ./remove_is_udt.patch
   ];
 
@@ -98,6 +104,10 @@ effectiveStdenv.mkDerivation (finalAttrs: {
     substituteInPlace scripts/sac2c-version-manager.in \
       --replace-fail 'link_src = os.path.join (prefix, "libexec", "sac2c", version, *pp)' \
         'link_src = os.path.join (prefix, "libexec", *pp)'
+  ''
+  # if we disable the SeqChecks then we remove the target
+  + lib.optionalString (!enableSeqChecks) ''
+    substituteInPlace CMakeLists.txt --replace-fail "seq seq_checks" "seq"
   '';
 
   # Sac tries to write sac2crc to home directory.
@@ -119,9 +129,13 @@ effectiveStdenv.mkDerivation (finalAttrs: {
     gcc
     pkg-config
     python3
-  ];
+  ]
+  ++ lib.optional enableNinja ninja;
 
   doCheck = true;
+  # Tests are performed by the ctestCheckHook because we want to use
+  # disabledTests for the broken tests
+  dontUseNinjaCheck = true;
 
   checkInputs = [ gtest ];
 
