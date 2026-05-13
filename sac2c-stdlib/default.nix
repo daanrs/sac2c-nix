@@ -17,7 +17,7 @@
 }@inputs:
 let
   # git describe --tags --abbrev=4
-  version = "1.3-587-gd878";
+  version = "1.3-603-g9aff";
 
   pname = "sac2c-stdlib";
 
@@ -28,8 +28,8 @@ let
     # using a tag here causes an error because of the interaction with
     # fetchsubmodules. I'm probably just doing something incorrectly. See also
     # https://github.com/NixOS/nixpkgs/issues/26302
-    rev = "d8787b92201ea9d9765cb817de38ecdb9fc4ab46";
-    hash = "sha256-CMpFwrdzuNpdT1djGidw8hrCRzeX/vMm/JYGOA2usbY=";
+    rev = "9afffd46db51fd6877048f34fbd6c5a5de5eede5";
+    hash = "sha256-eS12tKLuttmSmvmvPVsZdH0+E7QMQcYS3rGQtSUDeG4=";
   };
 
   stdenv = throw "Use effectiveStdenv instead";

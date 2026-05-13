@@ -85,6 +85,9 @@ in
                 # This ensures clangd can pickup on generated header files such
                 # as config.h.in
                 CMAKE_EXPORT_COMPILE_COMMANDS = true;
+
+                # use Ninja by default
+                CMAKE_GENERATOR = "Ninja";
               };
 
               packages = [ pkgs.gtest ];

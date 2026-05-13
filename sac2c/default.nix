@@ -9,6 +9,7 @@
   m4,
   gcc,
   cmake,
+  ninja,
   pkg-config,
   python3,
   gtest,
@@ -22,7 +23,8 @@
 }@inputs:
 let
   # git describe --tags --abbrev=4
-  version = "2.1.0-PuurGeluk-229-g32fe4";
+  # And then remove the prefixed 'v'
+  version = "2.1.0-PuurGeluk-265-g6512d5";
 
   pname = "sac2c";
 
@@ -31,7 +33,7 @@ let
     owner = "sac-group";
     repo = pname;
     tag = "v${version}";
-    hash = "sha256-RGwdykY0PtC6aeQI+TWowgtOS++jZRYopaWbj33hVpQ=";
+    hash = "sha256-ESU0lSImLWnUikqfQThmx3xdTM3WbUAe1Sam6IJZCdY=";
   };
 
   postfix = if debug then "_d" else "_p";
@@ -71,11 +73,13 @@ effectiveStdenv.mkDerivation (finalAttrs: {
     libuuid
     libxslt
     m4
+    ninja
   ]
   ++ lib.optional enableCuda cudatoolkit;
 
   patches = [
     ./remove_is_udt.patch
+    ./fix-ninja.patch
   ];
 
   postPatch = ''
@@ -122,6 +126,9 @@ effectiveStdenv.mkDerivation (finalAttrs: {
   ];
 
   doCheck = true;
+
+  # tests are performed by ctestCheckHook
+  dontuseNinjaCheck = true;
 
   checkInputs = [ gtest ];
 
