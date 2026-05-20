@@ -1,0 +1,4 @@
+diff --git a/configure.in b/configure.ac
+similarity index 100%
+rename from configure.in
+rename to configure.ac

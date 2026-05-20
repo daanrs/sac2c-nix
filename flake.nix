@@ -54,6 +54,8 @@
             overlays = [ self.overlays.default ];
           };
 
+          packages.gasnet = pkgs.gasnet;
+
           # internal devShell for formatting check
           devShells.pre-commit = config.pre-commit.devShell;
 
