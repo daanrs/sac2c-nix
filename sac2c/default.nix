@@ -24,7 +24,7 @@
 let
   # git describe --tags --abbrev=4
   # And then remove the prefixed 'v'
-  version = "2.1.0-PuurGeluk-265-g6512d5";
+  version = "2.1.0-PuurGeluk-269-gab3bb";
 
   pname = "sac2c";
 
@@ -33,7 +33,7 @@ let
     owner = "sac-group";
     repo = pname;
     tag = "v${version}";
-    hash = "sha256-ESU0lSImLWnUikqfQThmx3xdTM3WbUAe1Sam6IJZCdY=";
+    hash = "sha256-33xUrTIVIJQZv9YiIWSvtRSlUe0ac8G8VnwC/ss0pXw=";
   };
 
   postfix = if debug then "_d" else "_p";
