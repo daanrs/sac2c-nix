@@ -12,6 +12,7 @@
   debug ? false,
   buildGeneric ? true,
   enableThreads ? sac2c.enableThreads,
+  enableOnnx ? sac2c.enableOnnx,
   enableCuda ? sac2c.enableCuda,
   cudaPackages ? { },
 }@inputs:
@@ -75,6 +76,7 @@ effectiveStdenv.mkDerivation (finalAttrs: {
         ]
         ++ lib.optional enableThreads "mt_pth"
         ++ lib.optional enableCuda "cuda"
+        ++ lib.optional enableOnnx "seq_onnx"
       )
     ))
     (lib.cmakeBool "IS_RELEASE" (sac2c.cmakeBuildType == "RELEASE"))

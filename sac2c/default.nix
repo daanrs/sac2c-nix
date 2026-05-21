@@ -19,22 +19,23 @@
   buildGeneric ? true,
   enableThreads ? true,
   enablePrivateHeapManager ? true,
+  enableOnnx ? true,
   enableCuda ? config.cudaSupport,
   cudaPackages ? { },
 }@inputs:
 let
   # git describe --tags --abbrev=4
   # And then remove the prefixed 'v'
-  version = "2.1.0-PuurGeluk-275-gd519577";
+  version = "onnx";
 
   pname = "sac2c";
 
   src = fetchFromGitLab {
     domain = "gitlab.sac-home.org";
-    owner = "sac-group";
+    owner = "daanrs";
     repo = pname;
-    tag = "v${version}";
-    hash = "sha256-6aEicfVDRVJ+dSrat0mMeWEKE4eUFc/pUZIAjPFCoPo=";
+    rev = "a85f089cda72402634235e1e1df4ae9bd869471f";
+    hash = "sha256-UbJ4V5kTecdMtx14nNJw7ItfFDyGcxdPtNTdvLk9vsk=";
   };
 
   postfix = if debug then "_d" else "_p";
@@ -78,10 +79,6 @@ effectiveStdenv.mkDerivation (finalAttrs: {
   ]
   ++ lib.optional enableCuda cudatoolkit;
 
-  patches = [
-    ./remove_is_udt.patch
-  ];
-
   postPatch = ''
     # Fix the issues with .git not existing in a nix build
     substituteInPlace cmake/sac2c-version-related.cmake \
@@ -115,6 +112,7 @@ effectiveStdenv.mkDerivation (finalAttrs: {
     (lib.cmakeBool "CUDA" enableCuda)
     (lib.cmakeBool "MT" enableThreads)
     (lib.cmakeBool "PHM" enablePrivateHeapManager)
+    (lib.cmakeBool "ONNX" enableOnnx)
     (lib.cmakeBool "BUILDGENERIC" buildGeneric)
     (lib.cmakeBool "FUNCTESTS" finalAttrs.finalPackage.doCheck)
   ];
@@ -168,7 +166,7 @@ effectiveStdenv.mkDerivation (finalAttrs: {
   '') targetSBIs);
 
   passthru = {
-    inherit enableCuda enableThreads;
+    inherit enableCuda enableThreads enableOnnx;
 
     tests.pkg-config = testers.testMetaPkgConfig finalAttrs.finalPackage;
   };
