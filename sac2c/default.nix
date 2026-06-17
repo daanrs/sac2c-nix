@@ -18,6 +18,7 @@
   debug ? false,
   buildGeneric ? true,
   enableThreads ? true,
+  enablePrivateHeapManager ? true,
   enableCuda ? config.cudaSupport,
   cudaPackages ? { },
 }@inputs:
@@ -113,6 +114,7 @@ effectiveStdenv.mkDerivation (finalAttrs: {
   cmakeFlags = [
     (lib.cmakeBool "CUDA" enableCuda)
     (lib.cmakeBool "MT" enableThreads)
+    (lib.cmakeBool "PHM" enablePrivateHeapManager)
     (lib.cmakeBool "BUILDGENERIC" buildGeneric)
     (lib.cmakeBool "FUNCTESTS" finalAttrs.finalPackage.doCheck)
   ];
