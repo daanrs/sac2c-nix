@@ -76,7 +76,11 @@ effectiveStdenv.mkDerivation (finalAttrs: {
         ]
         ++ lib.optional enableThreads "mt_pth"
         ++ lib.optional enableCuda "cuda"
-        ++ lib.optional enableOnnx "seq_onnx"
+        ++ lib.optionals enableOnnx [
+          "seq_onnx"
+          "seq_onnx_seq"
+        ]
+        ++ lib.optional (enableOnnx && enableCuda) "seq_onnx_cuda"
       )
     ))
     (lib.cmakeBool "IS_RELEASE" (sac2c.cmakeBuildType == "RELEASE"))
