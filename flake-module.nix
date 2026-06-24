@@ -1,3 +1,4 @@
+# Idk how I really feel about this file.
 {
   lib,
   flake-parts-lib,
@@ -57,26 +58,10 @@ in
             default = pkgs.sac2c-with-stdlib;
           };
 
-          checks.sac2c = mkOption {
-            type = types.package;
-            description = ''
-              sac2c to check
-            '';
-            default = cfg.packages.sac2c;
-          };
-
-          checks.sac2c-stdlib = mkOption {
-            type = types.package;
-            description = ''
-              sac2c-stdlib to check
-            '';
-            default = cfg.packages.sac2c-stdlib;
-          };
-
           devShells.sac2c = mkOption {
             type = types.package;
             description = ''
-              sac2c to check
+              sac2c devShell
             '';
             default = pkgs.mkShell {
               inputsFrom = [ cfg.packages.sac2c ];
@@ -97,11 +82,17 @@ in
           devShells.sac2c-stdlib = mkOption {
             type = types.package;
             description = ''
-              sac2c-stdlib to check
+              sac2c-stdlib devShell
             '';
             default = pkgs.mkShell {
               inputsFrom = [ cfg.packages.sac2c-stdlib ];
             };
+          };
+
+          checks.packages = mkOption {
+            type = types.attrsOf types.package;
+            description = "";
+            default = lib.mapAttrs' (n: lib.nameValuePair "package-${n}") cfg.packages;
           };
 
           autoWire =
@@ -126,7 +117,7 @@ in
             contains = k: lib.any (x: x == k);
           in
           {
-            checks = lib.optionalAttrs (contains "checks" cfg.autoWire) cfg.checks;
+            checks = lib.optionalAttrs (contains "checks" cfg.autoWire) cfg.checks.packages;
             devShells = lib.optionalAttrs (contains "devShells" cfg.autoWire) cfg.devShells;
             packages = lib.optionalAttrs (contains "packages" cfg.autoWire) cfg.packages;
           };
