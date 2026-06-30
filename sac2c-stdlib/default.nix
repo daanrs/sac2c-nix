@@ -79,8 +79,24 @@ effectiveStdenv.mkDerivation (finalAttrs: {
         ++ lib.optionals enableOnnx [
           "seq_onnx"
           "seq_onnx_seq"
+          "seq_onnx_combine"
+          "seq_onnx_combine_seq"
         ]
-        ++ lib.optional (enableOnnx && enableCuda) "seq_onnx_cuda"
+        ++ lib.optionals (enableOnnx && enableCuda) [
+          "seq_onnx_cuda"
+          "seq_onnx_combine_cuda"
+        ]
+        ++ lib.optionals (enableOnnx && enableThreads) [
+
+          "mt_pth_onnx"
+          "mt_pth_onnx_seq"
+          "mt_pth_onnx_combine"
+          "mt_pth_onnx_combine_seq"
+        ]
+        ++ lib.optionals (enableOnnx && enableThreads && enableCuda) [
+          "mt_pth_onnx_cuda"
+          "mt_pth_onnx_combine_cuda"
+        ]
       )
     ))
     (lib.cmakeBool "IS_RELEASE" (sac2c.cmakeBuildType == "RELEASE"))

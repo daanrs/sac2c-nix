@@ -34,8 +34,8 @@ let
     domain = "gitlab.sac-home.org";
     owner = "daanrs";
     repo = pname;
-    rev = "aaad69ff80641b20510682cc165895798cf6a70d";
-    hash = "sha256-R+bn9wQP3SzF/BoozaVsBvtDedTe1httnlq4zMKal4A=";
+    rev = "d54a91dad90841b1a6cdda6ffd4b766fb1369374";
+    hash = "sha256-2SZAZUxPwQCsW1G/LIIdH61AErcBvdLB90ya9WmnLi0=";
   };
 
   postfix = if debug then "_d" else "_p";
