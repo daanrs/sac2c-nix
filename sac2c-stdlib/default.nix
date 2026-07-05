@@ -66,17 +66,15 @@ effectiveStdenv.mkDerivation (finalAttrs: {
 
   cmakeBuildType = if debug then "DEBUG" else "RELEASE";
 
+  sacTargets = [
+    "seq"
+  ]
+  ++ lib.optional enableThreads "mt_pth"
+  ++ lib.optional enableCuda "cuda";
+
   cmakeFlags = [
     (lib.cmakeFeature "SAC2C_EXEC" "${sac2c}/bin/sac2c")
-    (lib.cmakeOptionType "list" "TARGETS" (
-      lib.concatStringsSep ";" (
-        [
-          "seq"
-        ]
-        ++ lib.optional enableThreads "mt_pth"
-        ++ lib.optional enableCuda "cuda"
-      )
-    ))
+    (lib.cmakeOptionType "list" "TARGETS" (lib.concatStringsSep ";" finalAttrs.finalPackage.sacTargets))
     (lib.cmakeBool "IS_RELEASE" (sac2c.cmakeBuildType == "RELEASE"))
     (lib.cmakeBool "BUILDGENERIC" buildGeneric)
   ];
