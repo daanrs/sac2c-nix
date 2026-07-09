@@ -3,6 +3,7 @@
   stdenv,
   lib,
   fetchFromGitHub,
+  ninja,
   gcc,
   flex,
   bison,
@@ -86,6 +87,7 @@ effectiveStdenv.mkDerivation (finalAttrs: {
     cmake
     flex
     gcc
+    ninja
     pkg-config
     sac2c
   ];
